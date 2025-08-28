@@ -32,7 +32,7 @@ ___TEMPLATE_PARAMETERS___
   {
     "type": "LABEL",
     "name": "documentation",
-    "displayName": "This tag reads GA4 event data and sends it to the \u003ca href\u003d\"https://developer.awin.com/apidocs/conversion-api\"\u003eAwin Conversion API\u003c/a\u003e. \u003cbr\u003eThe tag should be configured in two modes:\n\u003cul\u003e\n       \u003cli\u003e\u003cb\u003ePage View\u003c/b\u003e: Trigger on all pages to ensure accurate Awin attribution (\u003ci\u003ethis mode doesn\u0027t send any requests to Awin\u003c/i\u003e).\u003c/li\u003e\n       \u003cli\u003e\u003cb\u003eConversion\u003c/b\u003e: Trigger on all conversion events to record successful transactions.\u003c/li\u003e\n\u003c/ul\u003e\nFor detailed setup instructions, please refer to the \u003ca href\u003d\"https://docs.addingwell.com/en/snapchat-capi/tag-setup\"\u003eAddingwell documentation\u003c/a\u003e.\u003cbr\u003e\u003cbr\u003e"
+    "displayName": "This tag reads GA4 event data and sends it to the \u003ca href\u003d\"https://developer.awin.com/apidocs/conversion-api\"\u003eAwin Conversion API\u003c/a\u003e. \u003cbr\u003eThe tag should be configured in two modes:\n\u003cul\u003e\n       \u003cli\u003e\u003cb\u003ePage View\u003c/b\u003e: Trigger on all pages to ensure accurate Awin attribution (\u003ci\u003ethis mode doesn\u0027t send any requests to Awin but only sets cookies\u003c/i\u003e).\u003c/li\u003e\n       \u003cli\u003e\u003cb\u003eConversion\u003c/b\u003e: Trigger on all conversion events to record successful transactions.\u003c/li\u003e\n\u003c/ul\u003e\nFor detailed setup instructions, please refer to the \u003ca href\u003d\"https://docs.addingwell.com/en/awin-capi\"\u003eAddingwell documentation\u003c/a\u003e.\u003cbr\u003e\u003cbr\u003e"
   },
   {
     "type": "SELECT",
@@ -1728,6 +1728,6 @@ scenarios: []
 
 ___NOTES___
 
-Created on 22/08/2025, 15:23:12
+Created on 28/08/2025, 15:11:02
 
 
