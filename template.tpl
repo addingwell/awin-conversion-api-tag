@@ -1009,10 +1009,13 @@ if(data.eventType == "page_view") {
     });
   }
   
-  sendConversionRequest(requestBody);
+  if(requestBody.orders[0].awc || (requestBody.orders[0].clickTime && requestBody.orders[0].publisherId) || requestBody.orders[0].voucher) {
+    sendConversionRequest(requestBody);
+  } else {
+    data.gtmOnSuccess();
+  }
 
 }
-
 
 function sendConversionRequest(requestBody) {
   sendHttpRequest(
@@ -1151,7 +1154,7 @@ function getBasket() {
         quantity: makeNumber(item[getItemField('quantity')]),
         commissionGroupCode: item[getItemField('commission_group')] || "DEFAULT",
         category: item[getItemField('item_category')],
-        sku: item[getItemField('item_sku')]
+        sku: makeString(item[getItemField('item_sku')])
       });
     });
   }
