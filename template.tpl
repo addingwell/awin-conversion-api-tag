@@ -914,7 +914,7 @@ const setCookie = require('setCookie');
 const parseUrl = require('parseUrl');
 const JSON = require('JSON');
 const getRequestHeader = require('getRequestHeader');
-const encodeUriComponent = require('encodeUriComponent');
+const encodeUri = require('encodeUri');
 const getCookieValues = require('getCookieValues');
 const getEventData = require('getEventData');
 const eventData = require('getAllEventData')();
@@ -928,7 +928,7 @@ const getTimestampMillis = require('getTimestampMillis');
 const makeTableMap = require('makeTableMap');
 
 const currentTime = Math.round(getTimestampMillis() / 1000);
-const requestUrl = "https://api.awin.com/s2s/advertiser/" + data.advertiserId + "/orders";
+const requestUrl = "https://api.awin.com/s2s/advertiser/" + encodeUri(data.advertiserId) + "/orders";
 const referrer = eventData.page_referrer || getRequestHeader('referer');
 const url = eventData.page_location || eventData.page_referrer || getRequestHeader('referer');
 const host = getRequestHeader('host');
@@ -1009,10 +1009,13 @@ if(data.eventType == "page_view") {
     });
   }
   
-  sendConversionRequest(requestBody);
+  if(requestBody.orders[0].awc || (requestBody.orders[0].clickTime && requestBody.orders[0].publisherId) || requestBody.orders[0].voucher) {
+    sendConversionRequest(requestBody);
+  } else {
+    data.gtmOnSuccess();
+  }
 
 }
-
 
 function sendConversionRequest(requestBody) {
   sendHttpRequest(
@@ -1151,7 +1154,7 @@ function getBasket() {
         quantity: makeNumber(item[getItemField('quantity')]),
         commissionGroupCode: item[getItemField('commission_group')] || "DEFAULT",
         category: item[getItemField('item_category')],
-        sku: item[getItemField('item_sku')]
+        sku: makeString(item[getItemField('item_sku')])
       });
     });
   }
