@@ -1,6 +1,8 @@
 homepage: "https://addingwell.com"
 documentation: "https://docs.addingwell.com/en/awin-capi"
 versions:
+  - sha: f961c006ad79a2b6725b0efacdca56334ef27a40
+    changeNotes: Add encodeUri for advertiserId
   - sha: b5896ad26cf1e809656a6a48e17dff8cee0e25ca
     changeNotes: fix - send conversion request only when required params are available
   - sha: 751b36f825a38b941d215edba8d2d8fa1ca6df0c
