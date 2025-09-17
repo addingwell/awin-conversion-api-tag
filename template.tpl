@@ -914,7 +914,7 @@ const setCookie = require('setCookie');
 const parseUrl = require('parseUrl');
 const JSON = require('JSON');
 const getRequestHeader = require('getRequestHeader');
-const encodeUriComponent = require('encodeUriComponent');
+const encodeUri = require('encodeUri');
 const getCookieValues = require('getCookieValues');
 const getEventData = require('getEventData');
 const eventData = require('getAllEventData')();
@@ -928,7 +928,7 @@ const getTimestampMillis = require('getTimestampMillis');
 const makeTableMap = require('makeTableMap');
 
 const currentTime = Math.round(getTimestampMillis() / 1000);
-const requestUrl = "https://api.awin.com/s2s/advertiser/" + data.advertiserId + "/orders";
+const requestUrl = "https://api.awin.com/s2s/advertiser/" + encodeUri(data.advertiserId) + "/orders";
 const referrer = eventData.page_referrer || getRequestHeader('referer');
 const url = eventData.page_location || eventData.page_referrer || getRequestHeader('referer');
 const host = getRequestHeader('host');
