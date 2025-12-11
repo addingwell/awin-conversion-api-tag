@@ -51,7 +51,8 @@ ___TEMPLATE_PARAMETERS___
     ],
     "simpleValueType": true,
     "defaultValue": "page_view",
-    "help": "The tag should be configured in two modes: \u003cul\u003e        \u003cli\u003e\u003cb\u003ePage View\u003c/b\u003e: Trigger on all pages to ensure accurate Awin attribution (\u003ci\u003ethis mode doesn\u0027t send any requests to Awin\u003c/i\u003e)\u003c/li\u003e        \u003cli\u003e\u003cb\u003eConversion\u003c/b\u003e: Trigger on all conversion events to record successful transactions.\u003c/li\u003e \u003c/ul\u003e"
+    "help": "The tag should be configured in two modes: \u003cul\u003e        \u003cli\u003e\u003cb\u003ePage View\u003c/b\u003e: Trigger on all pages to ensure accurate Awin attribution (\u003ci\u003ethis mode doesn\u0027t send any requests to Awin\u003c/i\u003e)\u003c/li\u003e        \u003cli\u003e\u003cb\u003eConversion\u003c/b\u003e: Trigger on all conversion events to record successful transactions.\u003c/li\u003e \u003c/ul\u003e",
+    "alwaysInSummary": true
   },
   {
     "type": "TEXT",
@@ -87,6 +88,19 @@ ___TEMPLATE_PARAMETERS___
     ],
     "valueHint": "af4daa7c-087d-4dc7-9ef8-5fdb5d4ef10f",
     "help": "The auth token available in the \u003ca href\u003d\"https://ui.awin.com/awin-api\"\u003eAPI Credentials page\u003c/a\u003e."
+  },
+  {
+    "type": "CHECKBOX",
+    "name": "isTest",
+    "checkboxText": "Test mode",
+    "simpleValueType": true,
+    "enablingConditions": [
+      {
+        "paramName": "eventType",
+        "paramValue": "conversion",
+        "type": "EQUALS"
+      }
+    ]
   },
   {
     "type": "GROUP",
@@ -903,6 +917,86 @@ ___TEMPLATE_PARAMETERS___
         "type": "EQUALS"
       }
     ]
+  },
+  {
+    "type": "GROUP",
+    "name": "matchingParametersGroup",
+    "displayName": "Deduplication Channel Settings",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "TEXT",
+        "name": "deduplicationChannelQueryParameters",
+        "displayName": "Deduplication Channel Query Parameters",
+        "simpleValueType": true,
+        "defaultValue": "source,utm_source,fbclid,gclid"
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "considerOrganicTraffic",
+        "checkboxText": "Consider organic traffic",
+        "simpleValueType": true
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "setChannelToAwinIfClickIDs",
+        "checkboxText": "Set channel to \u0027aw\u0027 if Awin click IDs (awaid or awc) are in the URL",
+        "simpleValueType": true
+      }
+    ],
+    "enablingConditions": [
+      {
+        "paramName": "eventType",
+        "paramValue": "page_view",
+        "type": "EQUALS"
+      }
+    ]
+  },
+  {
+    "type": "GROUP",
+    "name": "cookieSettingsGroup",
+    "displayName": "Cookies Settings",
+    "groupStyle": "ZIPPY_CLOSED",
+    "subParams": [
+      {
+        "type": "TEXT",
+        "name": "cookieExpliration",
+        "displayName": "Cookie Expiration",
+        "simpleValueType": true,
+        "valueUnit": "days",
+        "defaultValue": 365,
+        "valueValidators": [
+          {
+            "type": "NON_EMPTY"
+          }
+        ]
+      },
+      {
+        "type": "TEXT",
+        "name": "cookieDomain",
+        "displayName": "Cookie Domain",
+        "simpleValueType": true,
+        "defaultValue": "auto",
+        "valueValidators": [
+          {
+            "type": "NON_EMPTY"
+          }
+        ]
+      },
+      {
+        "type": "CHECKBOX",
+        "name": "httpOnly",
+        "checkboxText": "HTTP Only",
+        "simpleValueType": true
+      }
+    ],
+    "enablingConditions": [
+      {
+        "paramName": "eventType",
+        "paramValue": "page_view",
+        "type": "EQUALS"
+      }
+    ]
   }
 ]
 
@@ -934,24 +1028,27 @@ const url = eventData.page_location || eventData.page_referrer || getRequestHead
 const host = getRequestHeader('host');
 const searchParams = parseUrl(url).searchParams;
 const api_key = data.apiKey;
-const channel = getChannel();
 
 const channelCookie = getCookieValues('aw_ch')[0];
 const clickTimeCookie = getCookieValues('aw_ct')[0];
 const publisherIdCookie = getCookieValues('aw_affid')[0];
 const awcCookie = getCookieValues('awc')[0];
 
+
+
 if(data.eventType == "page_view") {
   
+  const channel = getChannel();
+  
   const cookiesOptions = {
-      domain: 'auto',
+      domain: data.cookieDomain,
       path: '/',
       secure: true,
-      httpOnly: true,
-      'max-age': 31536000 // 365 days
+      httpOnly: data.httpOnly,
+      'max-age': 60 * 60 * 24 * makeNumber(data.cookieExpiration)
   };
   
-  if(channel != channelCookie && channel != 'aw') {
+  if(channel != channelCookie) {
     setCookie('aw_ch', channel, cookiesOptions);
   }
   
@@ -963,8 +1060,8 @@ if(data.eventType == "page_view") {
     setCookie('awc', searchParams.awc, cookiesOptions);
   }
   
-  if(searchParams.aw_affid) {
-    setCookie('aw_affid', searchParams.aw_affid, cookiesOptions);
+  if(searchParams.awinaffid || searchParams.id || searchParams.a || searchParams.r) {
+    setCookie('aw_affid', (searchParams.awinaffid || searchParams.id || searchParams.a || searchParams.r), cookiesOptions);
   }
   
   data.gtmOnSuccess();
@@ -975,7 +1072,8 @@ if(data.eventType == "page_view") {
     orders: [{
       orderReference: getOrderReference(),
       amount: getAmount(),
-      channel: channelCookie || 'aw',
+      isTest: data.isTest,
+      channel: channelCookie,
       awc: getAwc(),
       publisherId: getPublisherId(),
       clickTime: undefined,
@@ -1047,38 +1145,45 @@ function getClickTime() {
 }
 
 function getChannel() {
-  let channel = "aw";
-  const referrerDomain = getDomain(referrer);
-  const hostDomain = getDomain(host);
-  log('referrer ' + referrerDomain);
-  log('hostDomain ' + hostDomain);
-  if(referrerDomain != hostDomain) {
-    if(referrerDomain && referrerDomain.indexOf('awin') == -1) {
-      channel = referrerDomain.split('.')[0];
+  
+  let channel = channelCookie;
+  let matchedParameters = data.deduplicationChannelQueryParameters.split(',');
+  
+  if(!channelCookie) {
+    channel = "direct";
+  }
+  
+  if(data.considerOrganicTraffic) {
+    let matchedSources = ["google", "bing", "yahoo", "yandex", "duckduckgo"];
+    matchedSources.forEach(matchedSource => {
+      if(referrer.indexOf(matchedSource) != -1) {
+        channel = 'organic';
+      }    
+    });
+  }
+  
+  matchedParameters.forEach(matchedParameter => {
+    if(searchParams[matchedParameter] && searchParams[matchedParameter].indexOf('awin') == -1) {
+      channel = 'other';
+    } else if(searchParams[matchedParameter] && searchParams[matchedParameter].indexOf('awin') != -1) {
+      channel = 'aw';
     }
-  }
+  });
   
-  if(searchParams.gclid) {
-    channel = "google";
-  }
-  
-  if(searchParams.fbclid) {
-    channel = "facebook";
-  }
-  
-  if(searchParams.utm_source) {
-    channel = searchParams.utm_source;
-  }
-  
-  if(searchParams.source) {
-    channel = searchParams.source;
-  }
-  
-  if(channel.indexOf('awin') != -1) {
-    channel = 'aw';
+  if(data.setChannelToAwinIfClickIDs) {
+    
+    if(searchParams.awc) {
+      channel = 'aw';
+    }
+    
+    if(searchParams.awaid) {
+      channel = 'aw';
+    }
+    
   }
   
   return channel;
+  
 }
 
 
@@ -1698,6 +1803,10 @@ ___SERVER_PERMISSIONS___
               {
                 "type": 1,
                 "string": "aw_ch"
+              },
+              {
+                "type": 1,
+                "string": "AwinChannelCookie"
               },
               {
                 "type": 1,
