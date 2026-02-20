@@ -960,7 +960,7 @@ ___TEMPLATE_PARAMETERS___
     "subParams": [
       {
         "type": "TEXT",
-        "name": "cookieExpliration",
+        "name": "cookieExpiration",
         "displayName": "Cookie Expiration",
         "simpleValueType": true,
         "valueUnit": "days",
