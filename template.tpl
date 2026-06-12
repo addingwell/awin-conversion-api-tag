@@ -196,11 +196,11 @@ ___TEMPLATE_PARAMETERS___
     "subParams": [
       {
         "type": "TEXT",
-        "name": "itemsArray",
-        "displayName": "Items array override",
+        "name": "itemsCommissionGroupMapper",
+        "displayName": "Items Commission Group Mapper",
         "simpleValueType": true,
-        "valueHint": "{{ED - products}}",
-        "help": "By default the tag will look for \u003cb\u003eeventData.items\u003c/b\u003e as products array, you can override this behaviour by specifying the products array the tag should look for instead."
+        "valueHint": "{{Items Commission Group Mapper}}",
+        "help": "To apply a specific commission group per product, use the Items Commission Group Mapper by Addingwell sGTM variable."
       },
       {
         "type": "SIMPLE_TABLE",
@@ -279,9 +279,17 @@ ___TEMPLATE_PARAMETERS___
     "groupStyle": "ZIPPY_CLOSED",
     "subParams": [
       {
+        "type": "TEXT",
+        "name": "commissionGroupsArray",
+        "displayName": "Commission Groups Array",
+        "simpleValueType": true,
+        "help": "Commission Group Array must be formatted like this: \u003cb\u003e[{ code: \"ABC\", amount: 1.25 }, { code: \"DEF\", amount: 5.45 }]\u003c/b\u003e",
+        "valueHint": "{{ED - commission_groups}}"
+      },
+      {
         "type": "SIMPLE_TABLE",
         "name": "commissionGroupsList",
-        "displayName": "Commissoin Groups",
+        "displayName": "Commission Groups",
         "simpleTableColumns": [
           {
             "defaultValue": "",
@@ -1034,8 +1042,6 @@ const clickTimeCookie = getCookieValues('aw_ct')[0];
 const publisherIdCookie = getCookieValues('aw_affid')[0];
 const awcCookie = getCookieValues('awc')[0];
 
-
-
 if(data.eventType == "page_view") {
   
   const channel = getChannel();
@@ -1203,7 +1209,7 @@ function getAwc() {
 }
 
 function getPublisherId() {
-  return makeNumber(publisherIdCookie);
+  return publisherIdCookie ? makeNumber(publisherIdCookie) : undefined;
 }
 
 function getVoucher() {
@@ -1227,19 +1233,24 @@ function getCustomerAcquisition() {
 }
 
 function getCommissionGroups() {
-  let commissionGroups;
   
-  if(data.commissionGroupsList) {
-    commissionGroups = [];
-    data.commissionGroupsList.forEach(commissionGroup => {
-      commissionGroups.push({
-        code: commissionGroup.code,
-        amount: makeNumber(commissionGroup.amount)
-      });
+  if(data.commissionGroupsArray) {
+    data.commissionGroupsArray.forEach(commission_group => {
+      if(commission_group.amount) {
+        commission_group.amount = makeNumber(commission_group.amount);
+      }
     });
   }
   
-  return commissionGroups;
+  if(data.commissionGroupsList) {
+    data.commissionGroupsList.forEach(commission_group => {
+      if(commission_group.amount) {
+        commission_group.amount = makeNumber(commission_group.amount);
+      }
+    });
+  }
+  
+  return mergeByKey(data.commissionGroupsList, data.commissionGroupsArray, 'code').length > 0 ? mergeByKey(data.commissionGroupsList, data.commissionGroupsArray, 'code') : undefined;
 }
 
 function getCustomParameters() {  
@@ -1248,7 +1259,7 @@ function getCustomParameters() {
 
 function getBasket() {
   let basket;
-  let itemsArray = data.itemsArray || eventData.items;
+  let itemsArray = data.itemsCommissionGroupMapper || eventData.items;
   if(itemsArray && itemsArray.length > 0) {
     basket = [];
     itemsArray.forEach(item => {
@@ -1257,9 +1268,9 @@ function getBasket() {
         name: item[getItemField('item_name')],
         price: makeNumber(item[getItemField('price')]),
         quantity: makeNumber(item[getItemField('quantity')]),
-        commissionGroupCode: item[getItemField('commission_group')] || "DEFAULT",
+        commissionGroupCode: item[getItemField('commission_group')],
         category: item[getItemField('item_category')],
-        sku: makeString(item[getItemField('item_sku')])
+        sku: item[getItemField('item_sku')] ? makeString(item[getItemField('item_sku')]) : undefined
       });
     });
   }
@@ -1277,10 +1288,11 @@ function getItemField(defaultField) {
     quantity: 'quantity',
     item_category: 'item_category',
     item_sku: 'item_sku',
+    commission_group: 'commission_group'
   };
 
-  if (data.itemDataList) {
-    data.itemDataList.forEach(d => {
+  if (data.itemsDataList) {
+    data.itemsDataList.forEach(d => {
       if (map[defaultField] === d.name) {
         result = d.field;
       }
@@ -1310,6 +1322,27 @@ function getDomain(url) {
     return parts.slice(-2).join(".");
   }
   return url;
+}
+
+function mergeByKey(arr1, arr2, key) {
+  var result = (arr1 || []).slice();
+  (arr2 || []).forEach(function(item2) {
+    var found = false;
+
+    for (var i = 0; i < result.length; i++) {
+      if (result[i][key] === item2[key]) {
+        result[i] = item2;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      result.push(item2);
+    }
+  });
+
+  return result;
 }
 
 
