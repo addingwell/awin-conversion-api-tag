@@ -1,6 +1,8 @@
 homepage: "https://addingwell.com"
 documentation: "https://docs.addingwell.com/en/awin-capi"
 versions:
+  - sha: e72b3f89970330fb48c61dde90770ecae8626273
+    changeNotes: Add support for dynamic commission group inputs and fix item/commission
   - sha: 2d767efe392fff4a97e6aedfcb150a0aeaf7ca2c
     changeNotes: Fix type cookie settings
   - sha: fda0fadaf64d772be4af182f972ac254e35845d9
