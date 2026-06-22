@@ -1034,7 +1034,8 @@ const requestUrl = "https://api.awin.com/s2s/advertiser/" + encodeUri(data.adver
 const referrer = eventData.page_referrer || getRequestHeader('referer');
 const url = eventData.page_location || eventData.page_referrer || getRequestHeader('referer');
 const host = getRequestHeader('host');
-const searchParams = parseUrl(url).searchParams;
+const parsedUrlRaw = url ? parseUrl(url) : null;
+const searchParams = (parsedUrlRaw && parsedUrlRaw.searchParams) ? parsedUrlRaw.searchParams : {};
 const api_key = data.apiKey;
 
 const channelCookie = getCookieValues('aw_ch')[0];
@@ -1159,7 +1160,7 @@ function getChannel() {
     channel = "direct";
   }
   
-  if(data.considerOrganicTraffic) {
+  if(data.considerOrganicTraffic && referrer) {
     let matchedSources = ["google", "bing", "yahoo", "yandex", "duckduckgo"];
     matchedSources.forEach(matchedSource => {
       if(referrer.indexOf(matchedSource) != -1) {
@@ -1314,6 +1315,7 @@ function makeDouble(value) {
 }
 
 function getDomain(url) {
+  if (!url) return '';
   if(url.indexOf('https://') != -1) {
     url = parseUrl(url).hostname;
   }
