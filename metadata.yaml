@@ -1,6 +1,8 @@
 homepage: "https://addingwell.com"
 documentation: "https://docs.addingwell.com/en/awin-capi"
 versions:
+  - sha: 4c6738d3d6f98ced71f83a80675fb0ec90858658
+    changeNotes: Default channel to aw, fix boolean new_customer and guard empty deduplication parameters
   - sha: d4b641a720e16e7473735988386b51e290ffef8d
     changeNotes: Add guard against undefined url and referrer
   - sha: e72b3f89970330fb48c61dde90770ecae8626273
