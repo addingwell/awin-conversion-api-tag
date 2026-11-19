@@ -1080,7 +1080,7 @@ if(data.eventType == "page_view") {
       orderReference: getOrderReference(),
       amount: getAmount(),
       isTest: data.isTest,
-      channel: channelCookie,
+      channel: channelCookie || "aw",
       awc: getAwc(),
       publisherId: getPublisherId(),
       clickTime: undefined,
@@ -1154,7 +1154,7 @@ function getClickTime() {
 function getChannel() {
   
   let channel = channelCookie;
-  let matchedParameters = data.deduplicationChannelQueryParameters.split(',');
+  let matchedParameters = (data.deduplicationChannelQueryParameters || '').split(',');
   
   if(!channelCookie) {
     channel = "direct";
@@ -1224,7 +1224,7 @@ function getCurrency() {
 function getCustomerAcquisition() {
   let customerAcquisition;
   if(eventData.new_customer) {
-    if(eventData.new_customer == "true") {
+    if(eventData.new_customer === true || eventData.new_customer == "true") {
       customerAcquisition = "NEW";
     } else {
       customerAcquisition = "RETURNING";
